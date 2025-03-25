@@ -85,81 +85,27 @@
 
 ---
 
-### **3. Scale and Architecture Considerations**
+### **3. Tech Stack Choices**
 
-#### **MVP Architecture**
-The MVP architecture will focus on batch ETL with periodic jobs.
-
-```
-         ┌───────────┐                        ┌───────────────┐
-         │ PostgreSQL │                        │   MinIO (Cold) │
-         └──────▲────┘                        └───────▲───────┘
-                │                                     │
-    (Batch)     │                                     │
-  Extraction    │                                     │
-                │                                     │
-         ┌──────▼──────┐                      ┌───────▼────────┐
-         │   ETL Jobs   │                      │     MinIO       │
-         │  (K8s Cron)  │                      │   Partitions    │
-         └──────▲───────┘                      └────────────────┘
-                │
-         ┌──────▼──────┐
-         │   Logging    │
-         │ Prometheus   │
-         └──────────────┘
-```
-
-#### **Future Scale Architecture**
-For large-scale deployments, include streaming CDC and advanced monitoring.
-
-```
-         ┌───────────────┐                    ┌─────────────────┐
-         │ PostgreSQL     │                    │ MinIO (Cold)     │
-         └──────▲────────┘                    └──────▲──────────┘
-                │                                   │
-    (Streaming CDC) │                                   │
-                │                                   │
-         ┌──────▼──────┐                    ┌───────▼────────────┐
-         │   Kafka      │                    │ MinIO Partitions   │
-         │  (CDC Event) │                    │ (Optimized Format) │
-         └──────▲───────┘                    └───────────────────┘
-                │
-         ┌──────▼──────┐
-         │   ETL Jobs   │
-         │ (K8s Cron)   │
-         └──────▲───────┘
-                │
-         ┌──────▼──────┐
-         │  Monitoring  │
-         │ Prometheus   │
-         └──────────────┘
-```
-
----
-
-### **4. Tech Stack Choices**
-
-- **ETL Service:** Go or Python using `pgx` or `psycopg2` for PostgreSQL extraction.
+- **ETL Service:** Go using `pgx` or `psycopg2` for PostgreSQL extraction.
 - **Transformation:** Apache Arrow or Pandas for in-memory transformations.
 - **MinIO Storage Format:** Parquet for efficient storage and retrieval.
 - **Orchestration:** Kubernetes with CronJobs.
-- **Monitoring:** Prometheus + Grafana.
-- **Logging:** Loki or ELK stack.
+- **Monitoring:** Prometheus + Grafana/Datadog.
+- **Logging:** Loki or fluentD.
 - **Security:** TLS for PostgreSQL and MinIO communication.
-- **Deployment Options:** Minikube for local testing, AWS EKS for production.
+- **Deployment Options:** Minikube.
 
 ---
 
 ### **5. Deployment Plan**
 
 #### **MVP Deployment**
-1. **Local Testing**
    - Use Minikube with PostgreSQL and MinIO pods.
    - Deploy ETL jobs as Kubernetes CronJobs.
    - Add basic logging and metrics collection.
-2. **Production Deployment**
-   - Use AWS EKS with PostgreSQL RDS and MinIO.
-   - Scale ETL jobs with Kubernetes HPA.
+
+   Additional Plan - 
    - Implement distributed MinIO nodes for better redundancy.
    - Set up Prometheus and Grafana for monitoring.
 
@@ -176,6 +122,3 @@ For large-scale deployments, include streaming CDC and advanced monitoring.
    - Add mTLS for inter-service communication.
    - Implement access control policies for MinIO.
 
----
-
-Let me know if you need detailed infrastructure diagrams, POC setup steps, or sample ETL job configurations.
