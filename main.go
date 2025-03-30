@@ -38,10 +38,12 @@ func extractData(db *sql.DB, query string) ([]map[string]interface{}, error) {
 		return nil, err
 	}
 	defer rows.Close()
+
 	columns, err := rows.Columns()
 	if err != nil {
 		return nil, err
 	}
+
 	var results []map[string]interface{}
 	for rows.Next() {
 		row := make([]interface{}, len(columns))
@@ -49,15 +51,18 @@ func extractData(db *sql.DB, query string) ([]map[string]interface{}, error) {
 		for i := range row {
 			rowPointers[i] = &row[i]
 		}
+
 		if err := rows.Scan(rowPointers...); err != nil {
 			return nil, err
 		}
+
 		rowMap := make(map[string]interface{})
 		for i, col := range columns {
 			rowMap[col] = row[i]
 		}
 		results = append(results, rowMap)
 	}
+
 	return results, nil
 }
 
@@ -73,6 +78,7 @@ func loadToMinio(config Config, data []byte, objectName string) error {
 	if err != nil {
 		return err
 	}
+
 	ctx := context.Background()
 	exists, err := minioClient.BucketExists(ctx, config.MinioBucketName)
 	if err != nil {
@@ -84,5 +90,38 @@ func loadToMinio(config Config, data []byte, objectName string) error {
 			return err
 		}
 	}
+
 	_, err = minioClient.PutObject(ctx, config.MinioBucketName, objectName, bytes.NewReader(data), int64(len(data)), minio.PutObjectOptions{
-		ContentType: "application
+		ContentType: "application/json",
+	})
+	return err
+}
+
+func main() {
+	config := GetConfig()
+
+	db, err := sql.Open("postgres", config.PostgresDSN)
+	if err != nil {
+		log.Fatalf("Failed to connect to PostgreSQL: %v", err)
+	}
+	defer db.Close()
+
+	query := "SELECT * FROM transactions"
+	data, err := extractData(db, query)
+	if err != nil {
+		log.Fatalf("Failed to extract data: %v", err)
+	}
+
+	transformedData, err := transformData(data)
+	if err != nil {
+		log.Fatalf("Failed to transform data: %v", err)
+	}
+
+	objectName := "data.json"
+	err = loadToMinio(config, transformedData, objectName)
+	if err != nil {
+		log.Fatalf("Failed to load data to MinIO: %v", err)
+	}
+
+	log.Println("ETL process completed successfully!")
+}
