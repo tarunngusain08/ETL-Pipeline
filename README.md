@@ -2,6 +2,10 @@
 
 This project implements an ETL (Extract, Transform, Load) pipeline that extracts data from a PostgreSQL database, transforms it into Parquet format, and loads it into MinIO object storage.
 
+<img width="1512" alt="Screenshot 2025-03-30 at 5 31 52 PM" src="https://github.com/user-attachments/assets/d8761439-c786-4bc3-8bc4-ccd3748d47eb" />
+<img width="686" alt="Screenshot 2025-03-30 at 5 35 15 PM" src="https://github.com/user-attachments/assets/d4930d51-8aef-419f-9f00-768107ba58bb" />
+
+
 ## Prerequisites
 
 1. **PostgreSQL**: Ensure PostgreSQL is installed and running.
