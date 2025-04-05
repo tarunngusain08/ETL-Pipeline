@@ -45,6 +45,7 @@ func extractData(db *sql.DB, query string) ([]Transaction, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	defer rows.Close()
 
 	var results []Transaction
