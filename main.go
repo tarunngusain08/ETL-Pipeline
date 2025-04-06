@@ -6,8 +6,6 @@ import (
 	"database/sql"
 	"log"
 
-	"encoding/json"
-
 	_ "github.com/lib/pq"
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
@@ -59,9 +57,9 @@ func extractData(db *sql.DB, query string) ([]Transaction, error) {
 	return results, nil
 }
 
-func transformData(data []map[string]interface{}) ([]byte, error) {
-	return json.Marshal(data)
-}
+// func transformData(data []map[string]interface{}) ([]byte, error) {
+// 	return json.Marshal(data)
+// }
 
 func transformToParquet(data []Transaction) ([]byte, error) {
 	buf := new(bytes.Buffer)
