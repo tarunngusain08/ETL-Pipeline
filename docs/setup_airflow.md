@@ -1,95 +1,71 @@
-# Setting Up Apache Airflow with Docker
+# Setting Up Apache Airflow with Python 3.11 Virtual Environment
 
-This document provides detailed steps to set up Apache Airflow using Docker.
+This document provides detailed steps to set up Apache Airflow using a Python 3.11 virtual environment.
 
 ## Prerequisites
 
-1. Install Docker and Docker Compose on your system.
-2. Ensure you have sufficient permissions to run Docker commands.
+1. Install Python 3.11 on your system. You can use Homebrew:
+   ```bash
+   brew install python@3.11
+   ```
+2. Ensure `pip` is up-to-date:
+   ```bash
+   python3.11 -m pip install --upgrade pip
+   ```
 
 ## Steps to Set Up Airflow
 
-### 1. Pull the Airflow Docker Image
+### 1. Create a Virtual Environment
 
-Run the following command to pull the latest Airflow image:
-
+Create a Python 3.11 virtual environment for Airflow:
 ```bash
-docker pull apache/airflow:latest
+python3.11 -m venv airflow-env
+source airflow-env/bin/activate
 ```
 
-### 2. Create the Airflow Directory Structure
+### 2. Install Apache Airflow
 
-Create the necessary directories for Airflow:
-
+Install Apache Airflow in the virtual environment:
 ```bash
-mkdir -p ~/airflow
-cd ~/airflow
-mkdir -p ./dags ./logs ./plugins ./config
+pip install apache-airflow
 ```
 
-### 3. Download the Docker Compose File
+### 3. Set the `AIRFLOW_HOME` Environment Variable
 
-Download the official Airflow `docker-compose.yaml` file:
-
+Set the `AIRFLOW_HOME` environment variable to a directory of your choice (e.g., `~/airflow`):
 ```bash
-curl -LfO 'https://airflow.apache.org/docs/apache-airflow/2.7.3/docker-compose.yaml'
+export AIRFLOW_HOME=~/airflow
 ```
 
-### 4. Set the Airflow User ID
-
-Set the Airflow user ID in an `.env` file:
-
+To make this change permanent, add the above line to your shell configuration file (e.g., `~/.zshrc` or `~/.bashrc`):
 ```bash
-echo -e "AIRFLOW_UID=$(id -u)" > .env
+echo 'export AIRFLOW_HOME=~/airflow' >> ~/.zshrc
+source ~/.zshrc
 ```
 
-### 5. Initialize the Airflow Environment
+### 4. Initialize the Airflow Database
 
-Run the following command to initialize the Airflow environment:
-
+Initialize the Airflow metadata database:
 ```bash
-docker compose up airflow-init
+airflow db init
 ```
 
-> **Note:** If you encounter warnings about the `version` attribute being obsolete, you can ignore them or remove the `version` attribute from the `docker-compose.yaml` file.
+### 5. Start the Airflow Services
 
-### 6. Start the Airflow Services
+Start the Airflow webserver and scheduler in separate terminals:
 
-Start the Airflow services in detached mode:
-
-```bash
-docker compose up -d
-```
-
-### 7. Troubleshooting
-
-If the `airflow-postgres-1` container is unhealthy, follow these steps:
-
-1. Check the logs of the `airflow-postgres-1` container:
-
+1. **Webserver**:
    ```bash
-   docker logs airflow-postgres-1
+   airflow webserver
+   ```
+2. **Scheduler**:
+   ```bash
+   airflow scheduler
    ```
 
-2. Ensure that the PostgreSQL service is running correctly. If necessary, restart the container:
-
-   ```bash
-   docker restart airflow-postgres-1
-   ```
-
-3. Verify that the required ports (e.g., 5432 for PostgreSQL) are not being used by other services.
-
-4. If the issue persists, try removing the container and starting it again:
-
-   ```bash
-   docker compose down
-   docker compose up -d
-   ```
-
-### 8. Access the Airflow Web Interface
+### 6. Access the Airflow Web Interface
 
 Once all services are running, access the Airflow web interface at:
-
 ```
 http://localhost:8080
 ```
@@ -98,7 +74,15 @@ Use the default credentials:
 - Username: `airflow`
 - Password: `airflow`
 
-## Additional Notes
+### 7. Place Your DAGs
 
-- You can customize the `docker-compose.yaml` file to suit your requirements.
+Ensure your DAG files (e.g., `etl_pipeline_dag.py`) are placed in the `dags` folder inside the `AIRFLOW_HOME` directory:
+```bash
+mkdir -p $AIRFLOW_HOME/dags
+cp /path/to/etl_pipeline_dag.py $AIRFLOW_HOME/dags/
+```
+
+### Additional Notes
+
+- You can customize the Airflow configuration in the `airflow.cfg` file located in the `AIRFLOW_HOME` directory.
 - For more information, refer to the [official Airflow documentation](https://airflow.apache.org/docs/).
